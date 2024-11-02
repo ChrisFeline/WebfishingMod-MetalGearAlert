@@ -2,11 +2,38 @@
 using GDWeave.Godot.Variants;
 using GDWeave.Godot;
 using GDWeave.Modding;
+using System.Text.Json.Serialization;
+using System;
 
-namespace GDWeave.Sample;
+namespace Kittenji.MetalGearAlert;
+
+public class Config {
+    [JsonInclude] public float volume = 25;
+
+    public static float LinearToDecibel(float linear) {
+        float dB;
+        if (linear != 0) dB = 20.0f * (float)Math.Log10(linear);
+        else dB = -144.0f;
+        return dB;
+    }
+
+    public int GetVolumeDB() {
+        return (int)Math.Round(LinearToDecibel(Math.Clamp(volume, 0f, 100f) / 100f));
+    }
+}
 
 public class Mod : IMod {
+#pragma warning disable CS8618
+    public static Config Config;
+    public static Serilog.ILogger Logger;
+#pragma warning restore CS8618
+
     public Mod(IModInterface modInterface) {
+        Logger = modInterface.Logger;
+        Config = modInterface.ReadConfig<Config>();
+
+        Logger.Information("Converted volume: " + Config.GetVolumeDB());
+
         modInterface.RegisterScriptMod(new PlayerFishCatchPatch());
     }
 
@@ -79,7 +106,7 @@ public class PlayerFishCatchPatch : IScriptMod {
                 yield return new Token(TokenType.Period);
                 yield return new IdentifierToken("volume_db");
                 yield return new Token(TokenType.OpAssign);
-                yield return new ConstantToken(new IntVariant(-4));
+                yield return new ConstantToken(new IntVariant(Mod.Config.GetVolumeDB()));
                 yield return new Token(TokenType.Newline, 1);
                 // notif.pitch_scale = 1
                 yield return new IdentifierToken(Notif);
