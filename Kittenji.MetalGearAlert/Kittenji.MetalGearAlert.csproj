@@ -11,6 +11,7 @@
 
     <ItemGroup>
         <None Include="manifest.json" CopyToOutputDirectory="PreserveNewest" />
+	    <None Include="kittenji.metal_gear_alert.pck" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <ItemGroup>
